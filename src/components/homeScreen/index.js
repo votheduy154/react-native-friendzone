@@ -15,6 +15,18 @@ import { Button } from 'react-native-elements'
 
 export default class HomeScreen extends Component {
 
+
+  static navigatorStyle = {
+    navBarHideOnScroll: true,
+    navBarButtonColor: "#fff",
+    drawUnderNavBar: true,
+    navBarTranslucent: true,
+    navBarTransparent: true,
+    navBarBackgroundColor: '#222233',
+    screenBackgroundColor: '#222233',
+    // navBarHideOnScroll: true,
+  }
+
   constructor(props) {
     super(props);
     this.onPressList = this.onPressList.bind(this)
@@ -23,7 +35,7 @@ export default class HomeScreen extends Component {
   onPressList() {
     this.props.navigator.push({
       screen: 'listFriends', // unique ID registered with Navigation.registerScreen
-      // title: undefined, // navigation bar title of the pushed screen (optional)
+      title: '', // navigation bar title of the pushed screen (optional)
       // titleImage: require('../../img/my_image.png'), //navigation bar title image instead of the title text of the pushed screen (optional)
       // passProps: {}, // Object that will be passed as props to the pushed screen (optional)
       // animated: true, // does the push have transition animation or does it happen immediately (optional)
@@ -48,6 +60,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5FCFF',
+    backgroundColor: '#222233',
   }
 });

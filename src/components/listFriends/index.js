@@ -5,6 +5,9 @@ import {
   ListView,
   TouchableOpacity,
   Image,
+  TouchableHighlight,
+  RefreshControl,
+  Button,
   Dimensions,
   Platform,
   View
@@ -13,54 +16,77 @@ import * as Animatable from 'react-native-animatable';
 import { Avatar } from 'react-native-elements'
 import data from '../../data'
 const { width } = Dimensions.get('window')
-console.log(width)
-
 var AnimatableTouchableOpacity = Animatable.createAnimatableComponent(TouchableOpacity);
 
 export default class ListFriend extends Component {
 
   static navigatorStyle = {
-    navBarBackgroundColor: '#000',
+    navBarHideOnScroll: true,
+    navBarButtonColor: "#fff",
+    drawUnderNavBar: true,
+    navBarTranslucent: true,
+    navBarTransparent: true,
+    navBarBackgroundColor: '#222233',
+    screenBackgroundColor: '#222233',
+    navBarTextColor: '#ccc',
     // navBarHideOnScroll: true,
   }
 
   constructor(props) {
     super(props)
     this.renderListView = this.renderListView.bind(this)
-    this.onPressDetail = this.onPressDetail.bind(this)
+   // this.onPressDetail = this.onPressDetail.bind(this)
+    this.state = {
+      buttonFollow: false,
+      refreshing: false,
+    }
   }
 
-  onPressDetail() {
+  onPressDetail(data) {
     this.props.navigator.push({
-      screen: 'homeScreen', // unique ID registered with Navigation.registerScreen
-      title: undefined, // navigation bar title of the pushed screen (optional)
-      // titleImage: require('../../img/my_image.png'), //navigation bar title image instead of the title text of the pushed screen (optional)
-      // passProps: {}, // Object that will be passed as props to the pushed screen (optional)
-      // animated: true, // does the push have transition animation or does it happen immediately (optional)
-      // backButtonTitle: undefined, // override the back button title (optional)
-      // backButtonHidden: false, // hide the back button altogether (optional)
-      // navigatorStyle: {}, // override the navigator style for the pushed screen (optional)
-      // navigatorButtons: {} // override the nav buttons for the pushed screen (optional)
+      screen: 'detail', // unique ID registered with Navigation.registerScreen
+      backButtonTitle: '', // override the back button title (optional)
+      passProps: {
+        userName: data
+      }
     });
+  }
+
+  _onRefresh() {
+    this.setState({refreshing: true});
+    setTimeout(function(){
+      this.setState({refreshing: false});
+    }.bind(this),2000)
   }
 
   renderListView = () => {
     const ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 })
     const dataSource = ds.cloneWithRows(data.results)
+    let index = 0
     return (
       <ListView
         dataSource={dataSource}
         contentContainerStyle={[styles.listViewStyle]}
         scrollEventThrottle={16}
+        initialListSize={15}
+        refreshControl={
+          <RefreshControl
+            tintColor="#fff"
+            refreshing={this.state.refreshing}
+            onRefresh={this._onRefresh.bind(this)}
+          />
+        }
         renderRow={(rowData) => {
+          index++
           return (
-            <TouchableOpacity onPress={this.onPressDetail} animation="fadeIn" style={[styles.btnTouch]}>
-              <Image style={[styles.avt]} source={{uri: rowData.picture.large}}/>
-            </TouchableOpacity>
+            <Animatable.View useNativeDriver={true} animation="bounceIn" style={[styles.btnTouch,{ marginTop: index % 3 === 2 ? -30 : 20, marginHorizontal: (width-30) * 0.0166 }]}>
+              <TouchableOpacity onPress={()=>this.onPressDetail(rowData.name.first)}  style={{flex: 1}}>
+                <Image style={[styles.avt]} source={{uri: rowData.picture.large}}/>
+                <Text style={[styles.txtName]}>{rowData.name.first}</Text>
+              </TouchableOpacity>
+            </Animatable.View>
           )
         }}
-        // onEndReached={this.onTicketListEndReached}
-        // renderFooter={this.renderTicketFooter}
       />
     )
   }
@@ -79,24 +105,29 @@ const styles = StyleSheet.create({
     flex: 1,
     // justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000'
+    backgroundColor: '#222233'
   },
   listViewStyle: {
     flexDirection: 'row',
-    flexWrap: 'wrap'
+    flexWrap: 'wrap',
+    padding: 15,
+    paddingTop: 40,
+    marginTop: 30
   },
   btnTouch: {
-    width: width * 0.3,
-    height: width * 0.3,
-    marginLeft: width * 0.026,
+    width: (width - 30) * 0.3,
+    height: (width - 30) * 0.35,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 10
+    marginTop: 10,
   },
   avt: {
-    width: width*0.27,
-    height: width*0.27,
-    borderRadius: (width*0.27) /2,
-    flex: 1
+    width: width*0.26,
+    height: width*0.26,
+    borderRadius: (width*0.26) /2,
+  },
+  txtName: {
+    color: '#fff',
+    textAlign: 'center'
   }
 })
