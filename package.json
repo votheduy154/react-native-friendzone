@@ -12,6 +12,7 @@
     "npm": "^5.0.3",
     "react": "16.0.0-alpha.6",
     "react-native": "^0.44.3",
+    "react-native-action-button": "^2.6.10",
     "react-native-animatable": "^1.2.1",
     "react-native-elements": "^0.12.2",
     "react-native-indicator": "^0.6.7",

@@ -4,8 +4,10 @@ import {
   Text,
   ListView,
   TouchableOpacity,
+  UIManager,
   Image,
   Button,
+  LayoutAnimation,
   Keyboard,
   PixelRatio,
   ActivityIndicator,
@@ -15,15 +17,18 @@ import {
   Platform,
   View
 } from 'react-native'
+
+import ActionButton from 'react-native-action-button'
 import { Icon, FormLabel, FormInput, ButtonGroup } from 'react-native-elements'
 import axios from 'axios'
 import * as Animatable from 'react-native-animatable'
 import Modal from 'react-native-modal'
 import { Avatar } from 'react-native-elements'
-import data from '../../data'
 const { width } = Dimensions.get('window')
 var AnimatableTouchableOpacity = Animatable.createAnimatableComponent(TouchableOpacity)
 var AnimatableIcon = Animatable.createAnimatableComponent(Icon)
+
+var  _listViewOffset = 0
 
 export default class ListFriend extends Component {
 
@@ -49,33 +54,28 @@ export default class ListFriend extends Component {
       refreshing: false,
       isModalVisible: false,
       selectedIndex: 1,
-      getAPIStatus: false,
       bottomFooter: false,
       isFetchMore: false,
       page: 1,
       gender: null,
-      dataUser: []
+      dataUser: [],
+      isActionButtonVisible: true
     }
   }
 
-
   componentWillMount() {
-    const { gender, page } = this.state
-    axios.get(`https://randomuser.me/api/?page=${page}cac&gender=${gender}&results=30`)
+    const {page,gender} = this.state
+    axios.get(`https://randomuser.me/api/?page=${page}&gender=${gender}&results=15`)
       .then(response => {
-        console.log('cac')
         this.setState({
           dataUser: response.data.results
         })
+        console.log(this.state.dataUser)
       })
       .catch(error => {
-        return { error }
+        return error
       })
   }
-
-  // componentWillUpdate(nextProps, nextState) {
-  //   console.log(nextState)
-  // }
 
   updateIndex(selectedIndex) {
     Keyboard.dismiss()
@@ -84,6 +84,22 @@ export default class ListFriend extends Component {
 
   _showModal = () => this.setState({ isModalVisible: !this.state.isModalVisible })
 
+  _closeModal = () => {
+    const {page,gender} = this.state
+    const pageN = 1
+    this.setState({
+      isModalVisible: !this.state.isModalVisible,
+      gender: 'female',
+      dataUser: []
+    })
+    axios.get(`https://randomuser.me/api/?page=${pageN}&gender=female&results=15`)
+      .then(response => {
+        this.setState({
+          dataUser: response.data.results
+        })
+      })
+
+  }
 
   onPressDetail(data) {
     this.props.navigator.push({
@@ -96,50 +112,82 @@ export default class ListFriend extends Component {
   }
 
   _onRefresh = () => {
-    this.setState({ refreshing: true })
+    this.setState({
+      refreshing: true,
+      page: 1,
+      gender: null,
+    })
     const { gender, page } = this.state
-    axios.get(`https://randomuser.me/api/?page=${page}cac&gender=${gender}&results=30`)
+    axios.get(`https://randomuser.me/api/?page=${page}&gender=${gender}&results=15`)
       .then(response => {
         this.setState({
-          getAPIStatus: true,
           dataUser: response.data.results
         })
       })
      this.setState({ refreshing: false })
   }
 
+  _onScroll = (event) => {
+    UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true)
+    // Simple fade-in / fade-out animation
+    const CustomLayoutLinear = {
+      duration: 100,
+      create: { type: LayoutAnimation.Types.linear, property: LayoutAnimation.Properties.opacity },
+      update: { type: LayoutAnimation.Types.linear, property: LayoutAnimation.Properties.opacity },
+      delete: { type: LayoutAnimation.Types.linear, property: LayoutAnimation.Properties.opacity }
+    }
+    // Check if the user is scrolling up or down by confronting the new scroll position with your own one
+    const currentOffset = event.nativeEvent.contentOffset.y
+    const direction = (currentOffset > 0 && currentOffset > this._listViewOffset)
+      ? 'down'
+      : 'up'
+    // console.log(direction)
+    // If the user is scrolling down (and the action-button is still visible) hide it
+    const isActionButtonVisible = direction === 'up'
+    if (isActionButtonVisible !== this.state.isActionButtonVisible) {
+      LayoutAnimation.configureNext(CustomLayoutLinear)
+      this.setState({ isActionButtonVisible })
+    }
+    // Update your scroll position
+    this._listViewOffset = currentOffset
+    // console.log(currentOffset)
+  }
+
   renderListView = () => {
     const ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 })
     const dataSource = ds.cloneWithRows(this.state.dataUser)
     let index = 0
+
     const renderLoadingFooter = () => {
-      // this.setState({
-      //   isFetchMore: true
-      // })
       return (
         this.state.bottomFooter ? <ActivityIndicator style={{marginBottom: 20}} size="large" color="#03a9f4"/> : null
       )
     }
+
     const onListEndReached = () => {
-      alert('asdasd')
-      // let { gender, page } = this.state
-      // let pageNew = page + 1
-      // this.setState({
-      //   bottomFooter: true,
-      // })
-      // axios.get(`https://randomuser.me/api/?page=${pageNew}&gender=${gender}&results=30`)
-      //   .then((response) => {
-      //     this.setState({
-      //       dataUser: [...this.state.dataUser, ...response.data.results],
-      //     })
-      //   })
+      let { gender, page } = this.state
+      let pageNew = page + 1
+      this.setState({
+        bottomFooter: true,
+      })
+      axios.get(`https://randomuser.me/api/?page=${pageNew}&gender=${gender}&results=15`)
+        .then((response) => {
+          this.setState({
+            ...this.state,
+            dataUser: [...this.state.dataUser, ...response.data.results],
+            bottomFooter: false,
+          })
+        })
     }
     return (
       <ListView
         dataSource={dataSource}
         contentContainerStyle={[styles.listViewStyle]}
+        // bounces={false}
         scrollEventThrottle={16}
-        initialListSize={15}
+       // onScroll={this._onScroll}
+        initialListSize={30}
+        enableEmptySections={true}
         refreshControl={
           <RefreshControl
             tintColor="#fff"
@@ -158,10 +206,9 @@ export default class ListFriend extends Component {
             </Animatable.View>
           )
         }}
-
         onEndReached={onListEndReached}
         renderFooter={renderLoadingFooter}
-        onEndReachedThreshold={10}
+        onEndReachedThreshold={50}
 
       />
     )
@@ -173,14 +220,10 @@ export default class ListFriend extends Component {
     return (
       <View>
         {this.renderListView()}
-        <Icon
-          reverse
-          containerStyle={{ backgroundColor: '#03a9f4', position: 'absolute', right: 10, bottom: 10 }}
-          color="#222233"
-          onPress={this._showModal}
-          underlayColor="red"
-          name='settings'
-        />
+
+        {
+          this.state.isActionButtonVisible ? <Icon reverse containerStyle={{ backgroundColor: '#03a9f4', position: 'absolute', right: 10, bottom: 10 }} color="#222233" onPress={this._showModal} underlayColor="red" name='settings' /> : null
+        }
 
         <Modal animationOut="fadeOutDown" animationIn="fadeInUp" isVisible={this.state.isModalVisible} style={{ justifyContent: 'flex-end', margin: 0 }}>
 
@@ -217,7 +260,7 @@ export default class ListFriend extends Component {
               reverse
               containerStyle={{ backgroundColor: '#03a9f4', position: 'absolute', right: 10, bottom: 10 }}
               color="#222233"
-              onPress={this._showModal}
+              onPress={this._closeModal}
               underlayColor="red"
               name='check'
             />
@@ -229,9 +272,7 @@ export default class ListFriend extends Component {
   }
 
   render() {
-    if (this.state.getAPIStatus) {
-      console.log(this.state.dataUser)
-    }
+    console.log(this.state)
     return (
       <View style={styles.container}>
         {
