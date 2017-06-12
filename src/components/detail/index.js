@@ -64,9 +64,9 @@ export default class Detail extends Component {
               </TouchableOpacity>
             </Animatable.View>
 
-            <Animatable.Text useNativeDriver={true} delay={100} animation="fadeInRight" style={[styles.txtIntro]}>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Explicabo facere hic iusto maxime neque optio quibusdam reprehenderit sequi tenetur unde. Ab cumque error iusto molestiae natus, quas sunt vel vero.</Animatable.Text>
-            <Animatable.Text useNativeDriver={true} delay={200} animation="fadeInUp" style={[styles.txtLabel]}>LOOKING FOR</Animatable.Text>
-            <Animatable.Text useNativeDriver={true} delay={200} animation="fadeInUp" style={[styles.txtFood]}>Asian - Food - Heath - Shushi - Sea Food - Vegateble - Wine</Animatable.Text>
+            <Animatable.Text delay={100} animation="fadeInRight" style={[styles.txtIntro]}>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Explicabo facere hic iusto maxime neque optio quibusdam reprehenderit sequi tenetur unde. Ab cumque error iusto molestiae natus, quas sunt vel vero.</Animatable.Text>
+            <Animatable.Text delay={200} animation="fadeInUp" style={[styles.txtLabel]}>LOOKING FOR</Animatable.Text>
+            <Animatable.Text delay={200} animation="fadeInUp" style={[styles.txtFood]}>Asian - Food - Heath - Shushi - Sea Food - Vegateble - Wine</Animatable.Text>
 
           </View>
         </ScrollView>

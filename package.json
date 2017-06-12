@@ -7,10 +7,15 @@
     "test": "jest"
   },
   "dependencies": {
+    "axios": "^0.16.2",
+    "install": "^0.10.1",
+    "npm": "^5.0.3",
     "react": "16.0.0-alpha.6",
     "react-native": "^0.44.3",
     "react-native-animatable": "^1.2.1",
     "react-native-elements": "^0.12.2",
+    "react-native-indicator": "^0.6.7",
+    "react-native-modal": "^2.4.0",
     "react-native-navigation": "^1.1.91",
     "react-native-vector-icons": "^4.2.0"
   },
