@@ -61,12 +61,13 @@ export default class ListFriend extends Component {
 
   componentWillMount() {
     const { gender, page } = this.state
-
-    return axios.post(`https://randomuser.me/api/?page=${page}cac&gender=${gender}&results=30`)
-      .then((response) => {
-        return response.data
+    axios.post(`https://randomuser.me/api/?page=${page}cac&gender=${gender}&results=30`)
+      .then(response => {
+        this.setState({
+          dataUser: response.data.results
+        })
       })
-      .catch((error) => {
+      .catch(error => {
         return { error }
       })
   }
@@ -97,7 +98,7 @@ export default class ListFriend extends Component {
     this.setState({ refreshing: true })
     const { gender, page } = this.state
     axios.get(`https://randomuser.me/api/?page=${page}cac&gender=${gender}&results=30`)
-      .then((response) => {
+      .then(response => {
         this.setState({
           getAPIStatus: true,
           dataUser: response.data.results
