@@ -61,8 +61,9 @@ export default class ListFriend extends Component {
 
   componentWillMount() {
     const { gender, page } = this.state
-    axios.post(`https://randomuser.me/api/?page=${page}cac&gender=${gender}&results=30`)
+    axios.get(`https://randomuser.me/api/?page=${page}cac&gender=${gender}&results=30`)
       .then(response => {
+        console.log('cac')
         this.setState({
           dataUser: response.data.results
         })
@@ -234,7 +235,7 @@ export default class ListFriend extends Component {
     return (
       <View style={styles.container}>
         {
-          !this.state.getAPIStatus && this.state.dataUser.length === 0 ? <ActivityIndicator size="large" color="#03a9f4"/> : this.renderView()
+          this.state.dataUser.length === 0 ? <ActivityIndicator size="large" color="#03a9f4"/> : this.renderView()
         }
       </View>
     )
