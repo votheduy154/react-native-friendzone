@@ -64,7 +64,11 @@ export default class Detail extends Component {
               </TouchableOpacity>
             </Animatable.View>
 
-            <Animatable.Text delay={100} animation="fadeInRight" style={[styles.txtIntro]}>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Explicabo facere hic iusto maxime neque optio quibusdam reprehenderit sequi tenetur unde. Ab cumque error iusto molestiae natus, quas sunt vel vero.</Animatable.Text>
+            <View style={{flexDirection: 'row', marginTop: 20}}>
+              <Animatable.Image delay={100} animation="fadeInRight" style={[styles.avt]} source={{ uri: this.props.userImg }} />
+              <Animatable.Text delay={100} animation="fadeInRight" style={[styles.txtIntro]}>Lorem ipsum dolor sit amet. Explicabo facere hic iusto maxime neque optio quibusdam reprehit sequi tenetur unde. Ab cumque error iusto molestiae natus, quas sunt vel vero.</Animatable.Text>
+            </View>
+
             <Animatable.Text delay={200} animation="fadeInUp" style={[styles.txtLabel]}>LOOKING FOR</Animatable.Text>
             <Animatable.Text delay={200} animation="fadeInUp" style={[styles.txtFood]}>Asian - Food - Heath - Shushi - Sea Food - Vegateble - Wine</Animatable.Text>
 
@@ -90,7 +94,12 @@ const styles = StyleSheet.create({
   },
   colName: {
     flex: 1,
-
+  },
+  avt: {
+    width: width * 0.26,
+    height: width * 0.26,
+    borderRadius: (width * 0.26) / 2,
+    alignSelf:'center',
   },
   txtUserName: {
     fontSize: 19,
@@ -116,10 +125,12 @@ const styles = StyleSheet.create({
   txtIntro: {
     color: '#e5e5e5',
     fontSize: 14,
-    marginTop: 30
+    paddingLeft: 15,
+    flex: 1,
+    textAlign: 'left'
   },
   txtLabel: {
-    marginTop: 80,
+    marginTop: 40,
     color: '#999',
     fontWeight: '500'
   },

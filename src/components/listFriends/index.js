@@ -18,7 +18,6 @@ import {
   View
 } from 'react-native'
 
-import ActionButton from 'react-native-action-button'
 import { Icon, FormLabel, FormInput, ButtonGroup } from 'react-native-elements'
 import axios from 'axios'
 import * as Animatable from 'react-native-animatable'
@@ -27,8 +26,6 @@ import { Avatar } from 'react-native-elements'
 const { width } = Dimensions.get('window')
 var AnimatableTouchableOpacity = Animatable.createAnimatableComponent(TouchableOpacity)
 var AnimatableIcon = Animatable.createAnimatableComponent(Icon)
-
-var  _listViewOffset = 0
 
 export default class ListFriend extends Component {
 
@@ -41,14 +38,15 @@ export default class ListFriend extends Component {
     navBarBackgroundColor: '#222233',
     screenBackgroundColor: '#222233',
     navBarTextColor: '#ccc'
-
   }
 
   constructor(props) {
     super(props)
     this.renderListView = this.renderListView.bind(this)
     this.updateIndex = this.updateIndex.bind(this)
-    // this.onPressDetail = this.onPressDetail.bind(this)
+    this._showModal= this._showModal.bind(this)
+    this._closeModal= this._closeModal.bind(this)
+    this.selectButton = this.selectButton.bind(this)
     this.state = {
       buttonFollow: false,
       refreshing: false,
@@ -59,18 +57,22 @@ export default class ListFriend extends Component {
       page: 1,
       gender: null,
       dataUser: [],
-      isActionButtonVisible: true
+      isActionButtonVisible: true,
+      buttonFollow: false
     }
   }
 
   componentWillMount() {
+    this.getApi()
+  }
+
+  getApi() {
     const {page,gender} = this.state
-    axios.get(`https://randomuser.me/api/?page=${page}&gender=${gender}&results=15`)
+    return axios.get(`https://randomuser.me/api/?page=${page}&gender=${gender}&results=15`)
       .then(response => {
         this.setState({
           dataUser: response.data.results
         })
-        console.log(this.state.dataUser)
       })
       .catch(error => {
         return error
@@ -79,34 +81,45 @@ export default class ListFriend extends Component {
 
   updateIndex(selectedIndex) {
     Keyboard.dismiss()
-    this.setState({ selectedIndex })
+    let gender
+    if (selectedIndex === 0) {
+       gender = 'female'
+    } else if (selectedIndex === 1){
+       gender = null
+    } else {
+       gender = 'male'
+    }
+    this.setState({
+      selectedIndex,
+      gender
+    })
   }
 
-  _showModal = () => this.setState({ isModalVisible: !this.state.isModalVisible })
-
-  _closeModal = () => {
+  _showModal() {
+    this.setState({ isModalVisible: !this.state.isModalVisible })
+  }
+  _closeModal() {
     const {page,gender} = this.state
     const pageN = 1
     this.setState({
       isModalVisible: !this.state.isModalVisible,
-      gender: 'female',
-      dataUser: []
+      dataUser:[]
     })
-    axios.get(`https://randomuser.me/api/?page=${pageN}&gender=female&results=15`)
+    axios.get(`https://randomuser.me/api/?page=${pageN}&gender=${gender}&results=15`)
       .then(response => {
         this.setState({
           dataUser: response.data.results
         })
       })
-
   }
 
-  onPressDetail(data) {
+  onPressDetail(name, image) {
     this.props.navigator.push({
       screen: 'detail', // unique ID registered with Navigation.registerScreen
       backButtonTitle: '', // override the back button title (optional)
       passProps: {
-        userName: data
+        userName: name,
+        userImg: image
       }
     })
   }
@@ -114,43 +127,26 @@ export default class ListFriend extends Component {
   _onRefresh = () => {
     this.setState({
       refreshing: true,
-      page: 1,
       gender: null,
+      selectedIndex: 1
     })
-    const { gender, page } = this.state
-    axios.get(`https://randomuser.me/api/?page=${page}&gender=${gender}&results=15`)
+    axios.get(`https://randomuser.me/api/?page=1&gender=null&results=15`)
       .then(response => {
         this.setState({
-          dataUser: response.data.results
+          ...this.state,
+          dataUser: response.data.results,
+          refreshing: false
         })
       })
-     this.setState({ refreshing: false })
+      .catch(error => {
+        return error
+      })
   }
 
-  _onScroll = (event) => {
-    UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true)
-    // Simple fade-in / fade-out animation
-    const CustomLayoutLinear = {
-      duration: 100,
-      create: { type: LayoutAnimation.Types.linear, property: LayoutAnimation.Properties.opacity },
-      update: { type: LayoutAnimation.Types.linear, property: LayoutAnimation.Properties.opacity },
-      delete: { type: LayoutAnimation.Types.linear, property: LayoutAnimation.Properties.opacity }
-    }
-    // Check if the user is scrolling up or down by confronting the new scroll position with your own one
-    const currentOffset = event.nativeEvent.contentOffset.y
-    const direction = (currentOffset > 0 && currentOffset > this._listViewOffset)
-      ? 'down'
-      : 'up'
-    // console.log(direction)
-    // If the user is scrolling down (and the action-button is still visible) hide it
-    const isActionButtonVisible = direction === 'up'
-    if (isActionButtonVisible !== this.state.isActionButtonVisible) {
-      LayoutAnimation.configureNext(CustomLayoutLinear)
-      this.setState({ isActionButtonVisible })
-    }
-    // Update your scroll position
-    this._listViewOffset = currentOffset
-    // console.log(currentOffset)
+  selectButton() {
+    this.setState({
+      buttonFollow: !this.state.buttonFollow
+    })
   }
 
   renderListView = () => {
@@ -183,14 +179,14 @@ export default class ListFriend extends Component {
       <ListView
         dataSource={dataSource}
         contentContainerStyle={[styles.listViewStyle]}
-        // bounces={false}
         scrollEventThrottle={16}
-       // onScroll={this._onScroll}
-        initialListSize={30}
+        initialListSize={1000}
         enableEmptySections={true}
         refreshControl={
           <RefreshControl
-            tintColor="#fff"
+            tintColor="#03a9f4"
+            titleColor="#fff"
+            title="Loading ..."
             refreshing={this.state.refreshing}
             onRefresh={this._onRefresh.bind(this)}
           />
@@ -199,7 +195,7 @@ export default class ListFriend extends Component {
           index++
           return (
             <Animatable.View useNativeDriver={true} animation="bounceIn" style={[styles.btnTouch, { marginTop: index % 3 === 2 ? -30 : 20, marginHorizontal: (width - 30) * 0.0166 }]}>
-              <TouchableOpacity onPress={() => this.onPressDetail(rowData.name.first)} style={{ flex: 1 }}>
+              <TouchableOpacity onPress={() => this.onPressDetail(rowData.name.first, rowData.picture.large)} style={{ flex: 1 }}>
                 <Image style={[styles.avt]} source={{ uri: rowData.picture.large }} />
                 <Text style={[styles.txtName]}>{rowData.name.first}</Text>
               </TouchableOpacity>
@@ -208,8 +204,7 @@ export default class ListFriend extends Component {
         }}
         onEndReached={onListEndReached}
         renderFooter={renderLoadingFooter}
-        onEndReachedThreshold={50}
-
+        onEndReachedThreshold={100}
       />
     )
   }
@@ -220,13 +215,9 @@ export default class ListFriend extends Component {
     return (
       <View>
         {this.renderListView()}
+        <Icon reverse containerStyle={{ backgroundColor: '#03a9f4', position: 'absolute', right: 10, bottom: 10 }} color="#222233" onPress={this._showModal} underlayColor="red" name='settings' />
 
-        {
-          this.state.isActionButtonVisible ? <Icon reverse containerStyle={{ backgroundColor: '#03a9f4', position: 'absolute', right: 10, bottom: 10 }} color="#222233" onPress={this._showModal} underlayColor="red" name='settings' /> : null
-        }
-
-        <Modal animationOut="fadeOutDown" animationIn="fadeInUp" isVisible={this.state.isModalVisible} style={{ justifyContent: 'flex-end', margin: 0 }}>
-
+        <Modal isVisible={this.state.isModalVisible} style={{ justifyContent: 'flex-end', margin: 0, }}>
 
           <View style={{ backgroundColor: '#222233', paddingHorizontal: 10, paddingBottom: 20 }}>
 
@@ -248,10 +239,10 @@ export default class ListFriend extends Component {
             </View>
 
             <View style={{ paddingHorizontal: 20, flexDirection: 'row', marginTop: 10 }}>
-              <TouchableOpacity style={[styles.btnFollow, { backgroundColor: this.state.buttonFollow ? '#4E97DB' : null }]} onPress={this.selectButton}>
+              <TouchableOpacity  style={[styles.btnFollow, { backgroundColor: this.state.buttonFollow ? '#4E97DB' : null }]} onPress={this.selectButton}>
                 <Text style={[styles.txtButton]}>Asian</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.btnFollow, { backgroundColor: this.state.buttonFollow ? '#4E97DB' : null, marginLeft: 10 }]} onPress={this.selectButton}>
+              <TouchableOpacity style={[styles.btnFollow, {marginLeft: 10}]}>
                 <Text style={[styles.txtButton]}>Shushi</Text>
               </TouchableOpacity>
             </View>
@@ -272,12 +263,9 @@ export default class ListFriend extends Component {
   }
 
   render() {
-    console.log(this.state)
     return (
       <View style={styles.container}>
-        {
-          this.state.dataUser.length === 0 ? <ActivityIndicator size="large" color="#03a9f4"/> : this.renderView()
-        }
+        {this.state.dataUser.length === 0 ? <ActivityIndicator size="large" color="#03a9f4"/> : this.renderView()}
       </View>
     )
   }
